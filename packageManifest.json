@@ -1,10 +1,10 @@
 {
    "packageName":"Hikvision - Controller",
    "author":"null",
-   "version":"1.1",
+   "version":"1.2",
    "minimumHEVersion":"2.3.7.100",
-   "dateReleased":"2024-10-06",
-   "releaseNotes":"First Version",
+   "dateReleased":"2026-01-28",
+   "releaseNotes":"New Features",
    "drivers": [
     {
        "id":"5d3bf00a-3438-4713-a02d-a275270d08af",
