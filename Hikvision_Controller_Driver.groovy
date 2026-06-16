@@ -24,6 +24,8 @@
 * is reported and upted from hikvision feedback.
 *
 * ver. 1.0.2 2026-01-06 - Added Lock capability + AcsWorkStatus refresh/poll + Users list + Last access search (DS-K1T343MWX)
+* ver. 1.0.3 2026-06-16 - Added Last user in, Parse corrected. 
+
 *
  */
 
@@ -644,24 +646,25 @@ void parse(String description) {
     eventdate = new Date().format ("EEE MMM d HH:mm:ss")
   
     log.debug "Major Event Type: " + MajorEventTypeid + " ...Event dateTime: " + eventdate + " -- Verifymode = " + verifymode
+    sendEvent(name: "LastAccessRaw", value: "verifymode=${verifymode} major=${MajorEventTypeid} sub=${subEventTypeid}", isStateChange: true)
 
     state.LastEventDate = eventdate
     state.LastEventid = eventid    
     state.subEventTypeid = subEventTypeid    
     state.MajorEventTypeid = MajorEventTypeid    
     
-    if ((verifymode == "faceOrFpOrCardOrPw") || (verifymode == "cardOrFaceOrFp")) {
-        lastpersonname = resp_json.AccessControllerEvent.name 
-        state.NameLastUser = lastpersonname
-        sendEvent(name: "LastUserIn", value: lastpersonname, isStateChange: true )
-        try {
-            def emp = resp_json.AccessControllerEvent.employeeNo
-            if (emp != null) sendEvent(name: "LastUserInEmployeeNo", value: emp.toString(), isStateChange: true )
-        } catch (ignored) {}
-        if (subEventTypeid == 75) {
-            sendEvent(name: "EntryMethod", value: "Authenticated via Card/Face" )
+    // Captura nome/employeeNo independente do verifymode
+    try {
+        def lastpersonname = resp_json.AccessControllerEvent.name
+        def emp = resp_json.AccessControllerEvent.employeeNoString ?: resp_json.AccessControllerEvent.employeeNo
+        def accesstime = new Date().format("yyyy-MM-dd HH:mm:ss")
+        if (lastpersonname) {
+            state.NameLastUser = lastpersonname
+            sendEvent(name: "LastUserIn", value: lastpersonname, isStateChange: true)
+            sendEvent(name: "LastAccessTime", value: accesstime, isStateChange: true)
         }
-    } 
+        if (emp != null) sendEvent(name: "LastUserInEmployeeNo", value: emp.toString(), isStateChange: true)
+    } catch (ignored) {} 
     
     if (subEventTypeid == 21) {
         sendEvent(name: "switch", value: "on", isStateChange: true)
